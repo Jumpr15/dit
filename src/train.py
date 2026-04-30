@@ -9,22 +9,22 @@ from data_module.dataset import DigitsDataset
 from nets.DiT import DIT
 
 def main():
-     batch_size = 8
-     embed_dims = 64
-     head_size = 16
-     num_heads = 4
-     block_num = 8
+     batch_size = 64
+     embed_dims = 512
+     head_size = 64
+     num_heads = 8
+     block_num = 16
      
-     patch_size = 1
+     patch_size = 2
      out_channels = 4
      in_dims = 4
      
      h_patch = 32
      w_patch = 32
 
-     lr = 2e-4
-     iterations = 10000
-     acc_grad = 4
+     lr = 1e-4
+     iterations = 1000
+     acc_grad = 1
      
      
      ds = load_dataset(
