@@ -12,7 +12,7 @@ class DiT_Block(nn.Module):
     self.self_mha = Self_Attention_Head(embed_dims, head_size, num_heads)
     self.cross_mha = Cross_Attention_Head(embed_dims, head_size, num_heads)
     self.mlp = MLP(embed_dims)
-    self.adaLN_scale_table = nn.Parameter(torch.randn(1, 6, embed_dims) / embed_dims ** 0.5)
+    self.adaLN_scale_table = nn.Parameter(torch.randn(6, embed_dims) / embed_dims ** 0.5)
     self.ln1 = nn.LayerNorm(
         embed_dims,
         elementwise_affine=False,
@@ -29,7 +29,7 @@ class DiT_Block(nn.Module):
     return (x * (1 + scale_factor)) + shift_factor
 
   def forward(self, x, y, t):
-    msa_scale, msa_shift, msa_gate, mlp_scale, mlp_shift, mlp_gate = (self.adaLN_scale_table[None] + t.reshape(1, 6, -1)).chunk(6, dim=1)
+    msa_scale, msa_shift, msa_gate, mlp_scale, mlp_shift, mlp_gate = (self.adaLN_scale_table + t.reshape(6, -1)).chunk(6, dim=1)
 
     s_attn_out = x + self.drop_path(
         msa_gate * self.self_mha(

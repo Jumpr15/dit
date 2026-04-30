@@ -34,17 +34,13 @@ class ImageEmbed(nn.Module):
     t_img = self.img_transform(img).to(device)
     self.h_patch = t_img.size(dim=1) / self.patch_size
     self.w_patch = t_img.size(dim=2) / self.patch_size
-    # print(f"t_img shape: {t_img.shape}")
     t_img = t_img.unsqueeze(0)
-    # print(f"t_img unsqueezed shape: {t_img.shape}")
 
     with torch.no_grad():
       l_img = self.vae.encode(t_img)
       l_sample = l_img.latent_dist.sample() * 0.18215
-    # print(f"l_img shape: {l_sample.shape}")
 
     patched_latent = self.patchify(l_sample).transpose(1, 2)
-    # print(f"patched l_img shape: {patched_latent.shape}")
     return patched_latent
   
   def get_hw_patches(self):

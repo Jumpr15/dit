@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from transformers import T5EncoderModel, AutoTokenizer, BitsAndBytesConfig
 
 from nets.embeddingLayers.embeddingProjector import EmbeddingProjector
@@ -28,5 +29,5 @@ class TextEmbed(nn.Module):
     with torch.no_grad():
       embeddings = self.T5(**inputs).last_hidden_state
 
-      embed_out = self.embed_proj(embeddings)
-      return embed_out
+    embed_out = self.embed_proj(embeddings)
+    return embed_out

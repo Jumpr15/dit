@@ -17,7 +17,7 @@ def main():
      
      patch_size = 1
      out_channels = 4
-     in_dims = "?"
+     in_dims = 4
 
      lr = 2e-4
      iterations = 10000
@@ -73,7 +73,7 @@ def main():
           ],
      )
      
-     trainer.fit(model, datamodule=train_dataloader)
+     trainer.fit(model, train_dataloaders=train_dataloader)
 
 if __name__ == "__main__":
      main()
