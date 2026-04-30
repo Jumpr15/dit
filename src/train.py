@@ -1,7 +1,7 @@
 import lightning as L
 from lightning.pytorch.loggers import WandbLogger
 
-from nets.Dit import DIT
+from nets.DiT import DIT
 
 def main():
      wandb_logger = WandbLogger(

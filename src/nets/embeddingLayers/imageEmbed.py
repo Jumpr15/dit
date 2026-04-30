@@ -8,6 +8,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 class ImageEmbed(nn.Module):
   def __init__(self, in_c, patch_size):
     super().__init__()
+    
+    self.patch_size = self.patch_size
     self.img_transform = transforms.Compose([
       transforms.v2.RGB(),
       transforms.PILToTensor(),
@@ -30,6 +32,8 @@ class ImageEmbed(nn.Module):
 
   def forward(self, img):
     t_img = self.img_transform(img).to(device)
+    self.h_patch = t_img.size(dim=1) / self.patch_size
+    self.w_patch = t_img.size(dim=2) / self.patch_size
     # print(f"t_img shape: {t_img.shape}")
     t_img = t_img.unsqueeze(0)
     # print(f"t_img unsqueezed shape: {t_img.shape}")
@@ -42,3 +46,6 @@ class ImageEmbed(nn.Module):
     patched_latent = self.patchify(l_sample).transpose(1, 2)
     # print(f"patched l_img shape: {patched_latent.shape}")
     return patched_latent
+  
+  def get_hw_patches(self):
+    return self.h_patch, self.w_patch
