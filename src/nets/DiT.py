@@ -114,7 +114,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         steps = torch.randint(self.scheduler.config.num_train_timesteps, (self.batch_size, )).to(device)
         
         with torch.no_grad():
-            l_img = self.vae.encode(img)
+            l_img = self.vae.encode(img.to(device))
             l_sample = l_img.latent_dist.sample() * 0.18215
         patched_latent = self.patchify(l_sample).transpose(1, 2)
         
