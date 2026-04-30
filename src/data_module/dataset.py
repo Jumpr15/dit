@@ -6,9 +6,9 @@ from nets.embeddingLayers.imageEmbed import ImageEmbed
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class DigitsDataset(Dataset):
-    def __init__(self, ds):
+    def __init__(self, ds, out_channels, patch_size):
       self.ds = ds
-      self.img_embed = ImageEmbed(4, 1).to(device)
+      self.img_embed = ImageEmbed(patch_size, out_channels).to(device)
 
     def __len__(self):
         return len(self.ds)
@@ -20,3 +20,6 @@ class DigitsDataset(Dataset):
         label = self.ds[idx]["label"]
         print(label)
         return l_img, label
+    
+    def __getpatches__(self):
+        return self.img_embed.get_hw_patches()
