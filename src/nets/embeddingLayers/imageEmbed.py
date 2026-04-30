@@ -15,5 +15,5 @@ class ImageEmbed(nn.Module):
     ])
 
   def forward(self, img):
-    t_img = self.img_transform(img).to(device)
+    t_img = self.img_transform(img)
     return t_img

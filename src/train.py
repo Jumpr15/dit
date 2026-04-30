@@ -53,7 +53,7 @@ def main():
      wandb_logger = WandbLogger(
           log_model=False,
           resume="allow",
-          id="ffhq_training"
+          id="ffhq_training_test"
     )
 
      trainer = L.Trainer(
@@ -69,7 +69,7 @@ def main():
           strategy="auto",
           callbacks=[
                L.pytorch.callbacks.ModelCheckpoint(
-                    dirpath='/model_ckpts', every_n_train_steps=50, save_top_k=-1
+                    dirpath='./model_ckpts', every_n_train_steps=50, save_top_k=-1
                )
           ],
      )
