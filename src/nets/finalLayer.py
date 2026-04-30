@@ -17,6 +17,6 @@ class FinalLayer(nn.Module):
 
   def forward(self, x, t):
     shift, scale = (self.adaLN_scale_table + t.reshape(2, -1)).chunk(2, dim=1)
-    x = self.adaLN_modulate(x, scale, shift)
+    x = self.adaLN_modulate(self.ln(x), scale, shift)
     x = self.proj_out(x)
     return x

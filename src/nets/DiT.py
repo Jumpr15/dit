@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import diffusers
 import lightning as L
+from diffusers.models import AutoencoderKL
 from huggingface_hub import PyTorchModelHubMixin
 
 from nets.embeddingLayers.textEmbed import TextEmbed
@@ -25,8 +26,6 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         head_size,
         num_heads,
         block_num,
-        h_patches, 
-        w_patches,
         lr,
         iterations
     ):
@@ -37,12 +36,24 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.out_channels = out_channels
         self.in_dims = in_dims
         self.embed_dims = embed_dims
-        self.h_patches = h_patches
-        self.w_patches = w_patches
         self.lr = lr
         self.iterations = iterations
         
-        self.up_proj = nn.Linear(in_dims, embed_dims) # input to block dimension expansion
+        self.up_proj = nn.Linear(in_dims * patch_size**2, embed_dims) # input to block dimension expansion
+        
+        self.patchify = nn.Sequential(
+            nn.Conv2d(
+                in_channels=in_dims,
+                out_channels=in_dims*patch_size**2,
+                kernel_size=patch_size,
+                stride=patch_size
+            ),
+            nn.Flatten(2)
+        )
+        
+        self.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix")
+        self.vae.requires_grad_(False)
+        self.vae.eval()
 
         self.block_list = nn.ModuleList(
             [DiT_Block(embed_dims, head_size, num_heads) for _ in range(block_num)]
@@ -73,8 +84,8 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
     def unpatchify(self, x):
         b = self.batch_size
-        h = self.h_patches
-        w = self.w_patches 
+        h = 1 ####
+        w = 1 ####
         p = self.patch_size
         o = self.out_channels
 
@@ -92,16 +103,22 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         for block in self.block_list:
             x = block(x, text_embed, timestep_embed)
 
-        final_out = self.final_layer(x, timestep)
+        final_out = self.final_layer(x, timestep_embed)
         out = self.unpatchify(final_out)
 
         return out
 
     def training_step(self, batch, batch_idx):
-        latent_img, text_label = batch
-        noise = torch.randn_like(latent_img)
+        img, text_label = batch
+        noise = torch.randn_like(img)
         steps = torch.randint(self.scheduler.config.num_train_timesteps, (self.batch_size, )).to(device)
-        noised_latents = self.scheduler.add_noise(latent_img, noise, steps)
+        
+        with torch.no_grad():
+            l_img = self.vae.encode(img)
+            l_sample = l_img.latent_dist.sample() * 0.18215
+        patched_latent = self.patchify(l_sample).transpose(1, 2)
+        
+        noised_latents = self.scheduler.add_noise(patched_latent, noise, steps)
         out = self(noised_latents, text_label, steps)
         loss = F.mse_loss(out, noise)
         self.log("train_loss", loss)

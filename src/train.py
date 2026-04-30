@@ -29,10 +29,8 @@ def main():
           split="train"
      )
 
-     digits_ds = DigitsDataset(ds, patch_size, out_channels)
+     digits_ds = DigitsDataset(ds) #. hw patches hardcoded
      train_dataloader = DataLoader(digits_ds, batch_size=batch_size, shuffle=True)
-     
-     h_patches, w_patches = digits_ds.__getpatches__()
      
      model = DIT(
           batch_size,
@@ -43,8 +41,6 @@ def main():
           head_size,
           num_heads,
           block_num,
-          h_patches,
-          w_patches,
           lr,
           iterations
      )
