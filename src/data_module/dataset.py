@@ -14,8 +14,8 @@ class DigitsDataset(Dataset):
         return len(self.ds)
 
     def __getitem__(self, idx):
-        img = self.ds[idx]["img"]
+        img = self.ds[idx]["image"]
         img = self.img_embed(img)
 
-        label = self.ds[idx]["label"]
+        label = self.ds[idx]["text"]
         return img, label

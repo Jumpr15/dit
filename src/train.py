@@ -18,6 +18,9 @@ def main():
      patch_size = 1
      out_channels = 4
      in_dims = 4
+     
+     h_patch = 32
+     w_patch = 32
 
      lr = 2e-4
      iterations = 10000
@@ -25,7 +28,7 @@ def main():
      
      
      ds = load_dataset(
-          "nguyenminh4099/handwritten-digits",
+          "idning/ffhq256-caption",
           split="train"
      )
 
@@ -42,13 +45,15 @@ def main():
           num_heads,
           block_num,
           lr,
-          iterations
+          iterations,
+          h_patch,
+          w_patch
      )
      
      wandb_logger = WandbLogger(
           log_model=False,
           resume="allow",
-          id="digitGeneratorTraining"
+          id="ffhq_training"
     )
 
      trainer = L.Trainer(
@@ -58,13 +63,13 @@ def main():
           precision="bf16-mixed",
           gradient_clip_val=1.0,
           accumulate_grad_batches=acc_grad,
-          log_every_n_steps=1000,
+          log_every_n_steps=10,
           enable_checkpointing=True,
           devices=1,
           strategy="auto",
           callbacks=[
                L.pytorch.callbacks.ModelCheckpoint(
-                    dirpath='/model_ckpts', every_n_train_steps=500, save_top_k=-1
+                    dirpath='/model_ckpts', every_n_train_steps=50, save_top_k=-1
                )
           ],
      )

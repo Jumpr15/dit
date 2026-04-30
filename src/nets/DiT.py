@@ -27,7 +27,9 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         num_heads,
         block_num,
         lr,
-        iterations
+        iterations,
+        h_patch,
+        w_patch
     ):
         super().__init__()
 
@@ -38,6 +40,9 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.embed_dims = embed_dims
         self.lr = lr
         self.iterations = iterations
+        
+        self.h_patch = h_patch
+        self.w_patch = w_patch
         
         self.up_proj = nn.Linear(in_dims * patch_size**2, embed_dims) # input to block dimension expansion
         
@@ -84,8 +89,8 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
     def unpatchify(self, x):
         b = self.batch_size
-        h = 1 ####
-        w = 1 ####
+        h = self.h_patch
+        w = self.w_patch
         p = self.patch_size
         o = self.out_channels
 
