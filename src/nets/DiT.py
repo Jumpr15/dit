@@ -142,16 +142,25 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
     def inference(self, text, num_steps=50):
         self.eval()
-        self.scheduler.set_timesteps(num_steps, device=device)
+        self.scheduler.set_timesteps(num_steps)
         
         with torch.no_grad():
             latent_img = torch.randn(1, 4, 32, 32).to(device) # B, C, L_H, L_W ## changes by image dimensions
             
             for timestep in self.scheduler.timesteps: # 0-num_steps
-                timestep = timestep.unsqueeze(0)
+                timestep = timestep.unsqueeze(0).to(device)
                 patched_latent = self.patchify(latent_img).transpose(1, 2)
                 noise_pred = self(patched_latent, text, timestep) # predicted noise
-                latent_img = self.scheduler.step(noise_pred, timestep, latent_img).prev_sample # returns new denoised latent for n - 1 step 
+
+                noise_pred_cpu = noise_pred.cpu()
+                latent_img_cpu = latent_img.cpu()
+                timestep_cpu = timestep.cpu()
+
+                # Step on CPU
+                latent_img_cpu = self.scheduler.step(noise_pred_cpu, timestep_cpu, latent_img_cpu).prev_sample
+
+                # Move result back to GPU for next iteration
+                latent_img = latent_img_cpu.to(device)
                 
             latent_img = latent_img / 0.18215 # scaling factor matching training
             img = self.vae.decode(latent_img).sample
