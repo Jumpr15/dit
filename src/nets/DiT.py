@@ -142,13 +142,13 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
     def inference(self, text, num_steps=50):
         self.eval()
-        self.scheduler.set_timesteps(num_steps)
+        self.scheduler.set_timesteps(num_steps, device=device)
         
         with torch.no_grad():
             latent_img = torch.randn(1, 4, 32, 32).to(device) # B, C, L_H, L_W ## changes by image dimensions
             
             for timestep in self.scheduler.timesteps: # 0-num_steps
-                timestep = timestep.unsqueeze(0).to(device)
+                timestep = timestep.unsqueeze(0)
                 patched_latent = self.patchify(latent_img).transpose(1, 2)
                 noise_pred = self(patched_latent, text, timestep) # predicted noise
                 latent_img = self.scheduler.step(noise_pred, timestep, latent_img).prev_sample # returns new denoised latent for n - 1 step 
