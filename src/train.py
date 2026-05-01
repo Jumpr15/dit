@@ -28,12 +28,12 @@ def main():
      
      
      ds = load_dataset(
-          "idning/ffhq256-caption",
+          "alfredplpl/artbench-pd-256x256",
           split="train"
      )
 
      digits_ds = ImgDataset(ds) #. hw patches hardcoded
-     train_dataloader = DataLoader(digits_ds, batch_size=batch_size, shuffle=True)
+     train_dataloader = DataLoader(digits_ds, batch_size=batch_size, shuffle=True, num_workers=8)
      
      model = DIT(
           batch_size,
@@ -53,7 +53,7 @@ def main():
      wandb_logger = WandbLogger(
           log_model=False,
           resume="allow",
-          id="ffhq_training_test"
+          id="artbench_train"
     )
 
      trainer = L.Trainer(

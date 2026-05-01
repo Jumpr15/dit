@@ -17,5 +17,5 @@ class ImgDataset(Dataset):
         img = self.ds[idx]["image"]
         img = self.img_embed(img)
 
-        label = self.ds[idx]["text"]
+        label = self.ds[idx]["caption"]
         return img, label
