@@ -14,12 +14,18 @@ class TimestepEmbed(nn.Module):
     downscale_freq_shift=0
     ) # [B, 1] => [B, num_channels]
 
-    self.time_embed = TimestepEmbedding(
+    self.time_embed_dit_block = TimestepEmbedding(
     in_channels=in_c,
     time_embed_dim=out_dim*6
     ) # [B, num_channels] => [B, time_embed_dims]
+    
+    self.time_embed_final = TimestepEmbedding(
+      in_channels=in_c,
+      time_embed_dim=out_dim*2
+    )
 
   def forward(self, t):
     proj_t = self.time_proj(t)
-    t_out = self.time_embed(proj_t)
-    return t_out
+    t_block_out = self.time_embed_dit_block(proj_t)
+    t_final_out = self.time_embed_final(proj_t)
+    return t_block_out, t_final_out

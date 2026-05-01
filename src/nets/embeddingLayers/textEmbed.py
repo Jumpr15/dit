@@ -24,7 +24,7 @@ class TextEmbed(nn.Module):
     self.embed_proj = EmbeddingProjector(512, out_dim) # hardcoded, 512 is T5 output dim
 
   def forward(self, input_text):
-    inputs = self.tokenizer(input_text, return_tensors='pt').to(device) # Added return_tensors='pt'
+    inputs = self.tokenizer(input_text, padding=True, truncation=True, return_tensors='pt').to(device) # Added return_tensors='pt'
 
     with torch.no_grad():
       embeddings = self.T5(**inputs).last_hidden_state

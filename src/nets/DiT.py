@@ -102,26 +102,27 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
     def forward(self, latent_img, text, timestep):
         text_embed = self.text_embedder(text)
-        timestep_embed = self.timestep_embedder(timestep)
+        timestep_embed, timestep_embed_final = self.timestep_embedder(timestep)
 
         x = self.up_proj(latent_img)
         for block in self.block_list:
             x = block(x, text_embed, timestep_embed)
 
-        final_out = self.final_layer(x, timestep_embed)
+        final_out = self.final_layer(x, timestep_embed_final)
         out = self.unpatchify(final_out)
 
         return out
 
     def training_step(self, batch, batch_idx):
         img, text_label = batch
-        noise = torch.randn_like(img)
-        steps = torch.randint(self.scheduler.config.num_train_timesteps, (self.batch_size, )).to(device)
         
         with torch.no_grad():
             l_img = self.vae.encode(img.to(device))
             l_sample = l_img.latent_dist.sample() * 0.18215
         patched_latent = self.patchify(l_sample).transpose(1, 2)
+        
+        noise = torch.randn_like(l_img)
+        steps = torch.randint(self.scheduler.config.num_train_timesteps, (self.batch_size, )).to(device)
         
         noised_latents = self.scheduler.add_noise(patched_latent, noise, steps)
         out = self(noised_latents, text_label, steps)
