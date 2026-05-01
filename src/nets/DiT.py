@@ -153,11 +153,12 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
                 latent_img = self.scheduler.step(noise_pred, timestep, latent_img).prev_sample # returns new denoised latent for n - 1 step 
                 
             latent_img = latent_img / 0.18215 # scaling factor matching training
-            img = self.vae.decode(latent_img).sample()
+            img = self.vae.decode(latent_img).sample
         
         t_img = ((img * 0.5) + 0.5).clamp(0, 1) # [-1, 1] => [0, 1] (clamp values out of range)
         t_img = t_img.permute(0, 2, 3, 1)
         t_img = t_img * 255 # to rgb vals?
-        pil_img = Image.fromarray(t_img) # convert to pil image format
+        int_img = t_img.detach().cpu().numpy().astype('uint8') # to uint8
+        pil_img = Image.fromarray(int_img[0]) # convert to pil image format
         return pil_img
         
