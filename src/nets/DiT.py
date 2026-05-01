@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import diffusers
-import lightning as L
+import pytorch_lightning as L
 from diffusers.models import AutoencoderKL
 from huggingface_hub import PyTorchModelHubMixin
 

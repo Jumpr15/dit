@@ -1,4 +1,5 @@
 from diffusers.models.embeddings import Timesteps, TimestepEmbedding
+import torch.nn as nn
 
 class TimestepEmbed(nn.Module):
   def __init__(self, out_dim):

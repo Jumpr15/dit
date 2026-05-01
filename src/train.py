@@ -1,5 +1,5 @@
-import lightning as L
-from lightning.pytorch.loggers import WandbLogger
+import pytorch_lightning as L
+from pytorch_lightning.loggers import WandbLogger
 
 from torch.utils.data import DataLoader
 
@@ -68,7 +68,7 @@ def main():
           devices=1,
           strategy="auto",
           callbacks=[
-               L.pytorch.callbacks.ModelCheckpoint(
+               L.callbacks.ModelCheckpoint(
                     dirpath='./model_ckpts', every_n_train_steps=50, save_top_k=-1
                )
           ],

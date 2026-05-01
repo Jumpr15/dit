@@ -3,13 +3,19 @@ name = "dit"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 dependencies = [
+    "accelerate>=0.20.0",
     "bitsandbytes>=0.49.2",
     "datasets>=4.8.5",
     "diffusers>=0.37.1",
     "huggingface-hub>=1.12.2",
-    "lightning>=2.6.1",
+    "pytorch-lightning==2.5.1",  # <-- older, stable version
     "timm>=1.0.26",
-    "torch>=2.11.0",
+    "transformers>=4.40.0",
+    "wandb",
 ]
+
+# Temporarily remove or comment this out to rule out environment-marker bugs
+# [tool.uv]
+# environments = ["sys_platform == 'linux'"]

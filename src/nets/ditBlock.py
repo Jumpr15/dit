@@ -29,7 +29,8 @@ class DiT_Block(nn.Module):
     return (x * (1 + scale_factor)) + shift_factor
 
   def forward(self, x, y, t):
-    msa_scale, msa_shift, msa_gate, mlp_scale, mlp_shift, mlp_gate = (self.adaLN_scale_table + t.reshape(6, -1)).chunk(6, dim=1)
+    B = x.shape[0]
+    msa_scale, msa_shift, msa_gate, mlp_scale, mlp_shift, mlp_gate = (self.adaLN_scale_table[None] + t.reshape(B, 6, -1)).chunk(6, dim=1)
 
     s_attn_out = x + self.drop_path(
         msa_gate * self.self_mha(
