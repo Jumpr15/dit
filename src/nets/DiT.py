@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import diffusers
 import pytorch_lightning as L
 from diffusers.models import AutoencoderKL
+from diffusers.models.embeddings import get_2d_sincos_pos_embed
 from huggingface_hub import PyTorchModelHubMixin
 
 from nets.embeddingLayers.textEmbed import TextEmbed
@@ -45,6 +46,13 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.w_patch = w_patch
         
         self.up_proj = nn.Linear(in_dims * patch_size**2, embed_dims) # input to block dimension expansion
+        
+        pos_embed = get_2d_sincos_pos_embed(
+            embed_dim=embed_dims,
+            grid_size=(h_patch, w_patch),
+            output_type="pt"
+        )
+        self.register_buffer("pos_embed", pos_embed)
         
         self.patchify = nn.Sequential(
             nn.Conv2d(
@@ -104,7 +112,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         text_embed = self.text_embedder(text)
         timestep_embed, timestep_embed_final = self.timestep_embedder(timestep)
 
-        x = self.up_proj(latent_img)
+        x = self.up_proj(latent_img) + self.pos_embed
         for block in self.block_list:
             x = block(x, text_embed, timestep_embed)
 
