@@ -98,7 +98,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         }
 
     def unpatchify(self, x):
-        b = self.batch_size
+        b = x.shape[0]
         h = self.h_patch
         w = self.w_patch
         p = self.patch_size
