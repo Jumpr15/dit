@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 from datasets import load_dataset
 
-from data_module.dataset import DigitsDataset
+from data_module.dataset import ImgDataset
 from nets.DiT import DIT
 
 def main():
@@ -32,7 +32,7 @@ def main():
           split="train"
      )
 
-     digits_ds = DigitsDataset(ds) #. hw patches hardcoded
+     digits_ds = ImgDataset(ds) #. hw patches hardcoded
      train_dataloader = DataLoader(digits_ds, batch_size=batch_size, shuffle=True)
      
      model = DIT(

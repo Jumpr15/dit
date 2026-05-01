@@ -5,7 +5,7 @@ from nets.embeddingLayers.imageEmbed import ImageEmbed
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-class DigitsDataset(Dataset):
+class ImgDataset(Dataset):
     def __init__(self, ds):
       self.ds = ds
       self.img_embed = ImageEmbed().to(device)
