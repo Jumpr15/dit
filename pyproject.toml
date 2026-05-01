@@ -10,6 +10,7 @@ dependencies = [
     "datasets>=4.8.5",
     "diffusers>=0.37.1",
     "huggingface-hub>=1.12.2",
+    "pillow>=12.2.0",
     "pytorch-lightning==2.5.1",  # <-- older, stable version
     "timm>=1.0.26",
     "transformers>=4.40.0",

@@ -7,6 +7,7 @@ import pytorch_lightning as L
 from diffusers.models import AutoencoderKL
 from diffusers.models.embeddings import get_2d_sincos_pos_embed
 from huggingface_hub import PyTorchModelHubMixin
+import PIL.Image as Image
 
 from nets.embeddingLayers.textEmbed import TextEmbed
 from nets.embeddingLayers.timestepEmbed import TimestepEmbed
@@ -139,6 +140,24 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.log("train_loss", loss)
         return loss
 
-
-
-
+    def inference(self, text, num_steps=50):
+        self.eval()
+        self.scheduler.set_timesteps(num_steps)
+        
+        with torch.no_grad():
+            latent_img = torch.randn(1, 4, 32, 32).to(device) # B, C, L_H, L_W ## changes by image dimensions
+            
+            for timestep in self.scheduler.timesteps: # 0-num_steps
+                patched_latent = self.patchify(latent_img).transpose(1, 2)
+                noise_pred = self(patched_latent, text, timestep) # predicted noise
+                latent_img = self.scheduler.step(noise_pred, timestep, latent_img).prev_sample # returns new denoised latent for n - 1 step 
+                
+            latent_img = latent_img / 0.18215 # scaling factor matching training
+            img = self.vae.decode(latent_img).sample()
+        
+        t_img = ((img * 0.5) + 0.5).clamp(0, 1) # [-1, 1] => [0, 1] (clamp values out of range)
+        t_img = t_img.permute(0, 2, 3, 1)
+        t_img = t_img * 255 # to rgb vals?
+        pil_img = Image.fromarray(t_img) # convert to pil image format
+        return pil_img
+        
