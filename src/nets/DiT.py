@@ -9,6 +9,8 @@ from diffusers.models.embeddings import get_2d_sincos_pos_embed
 from huggingface_hub import PyTorchModelHubMixin
 import PIL.Image as Image
 
+from ema_pytorch import EMA
+
 from nets.embeddingLayers.textEmbed import TextEmbed
 from nets.embeddingLayers.timestepEmbed import TimestepEmbed
 
@@ -78,6 +80,18 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.final_layer = FinalLayer(embed_dims, patch_size, out_channels)
 
         self.scheduler = diffusers.schedulers.DDPMScheduler()
+        
+        self.ema_model = EMA(
+            self,
+            beta=0.9999,
+            update_after_step=100,
+            update_every=10,
+            inv_gamma=1.0,
+            power=2/3,
+            update_model_with_ema_every=None,
+            update_model_with_ema_beta=0.0,
+        )
+        self.register_buffer("ema_step", torch.tensor(0))
 
     def configure_optimizers(self):
         params = [p for p in self.parameters() if p.requires_grad]
@@ -96,6 +110,10 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
             "optimizer": optimizer,
             "lr_scheduler": {"scheduler": scheduler, "interval": "step"},
         }
+        
+    def on_after_backward(self):
+        self.ema_model.update()
+        self.ema_step += 1
 
     def unpatchify(self, x):
         b = x.shape[0]
@@ -110,8 +128,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
         return x
 
-    def forward(self, latent_img, text, timestep):
-        text_embed = self.text_embedder(text)
+    def forward(self, latent_img, text_embed, timestep):
         timestep_embed, timestep_embed_final = self.timestep_embedder(timestep)
 
         x = self.up_proj(latent_img) + self.pos_embed
@@ -135,12 +152,14 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         noised_latents = self.scheduler.add_noise(l_sample, noise, steps)
         patched_latent = self.patchify(noised_latents).transpose(1, 2)
         
-        out = self(patched_latent, text_label, steps)
+        text_embed = self.text_embedder(text_label)
+        
+        out = self(patched_latent, text_embed, steps)
         loss = F.mse_loss(out, noise)
         self.log("train_loss", loss)
         return loss
 
-    def inference(self, text, num_steps=50):
+    def inference(self, text, num_steps=50, use_ema_weights=True):
         self.eval()
         self.scheduler.set_timesteps(num_steps)
         
@@ -150,7 +169,11 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
             for timestep in self.scheduler.timesteps: # 0-num_steps
                 timestep = timestep.unsqueeze(0).to(device)
                 patched_latent = self.patchify(latent_img).transpose(1, 2)
-                noise_pred = self(patched_latent, text, timestep) # predicted noise
+                
+                if use_ema_weights is True:
+                    noise_pred = self.ema_model(patched_latent, text, timestep) # using ema weights
+                else:  
+                    noise_pred = self(patched_latent, text, timestep) # predicted noise
 
                 noise_pred_cpu = noise_pred.cpu()
                 latent_img_cpu = latent_img.cpu()
