@@ -32,6 +32,7 @@ iterations = 25000
 acc_grad = 1
 
 log_steps = 50
+checkpoint_steps = 100
 run_name = "anime_captions_v1"
 
 HF_TOKEN = os.environ["HF_TOKEN"]   # never hardcode tokens
@@ -94,7 +95,7 @@ def main():
           strategy="auto",
           callbacks=[
                L.callbacks.ModelCheckpoint(
-                    dirpath='.src/model_ckpts', every_n_train_steps=10, save_top_k=-1
+                    dirpath='.src/model_ckpts', every_n_train_steps=checkpoint_steps, save_top_k=-1
                ),
                HubCheckpointSync(repo_id=HF_REPO, token=HF_TOKEN)
           ],
