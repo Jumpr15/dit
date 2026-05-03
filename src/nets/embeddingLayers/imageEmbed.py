@@ -9,6 +9,7 @@ class ImageEmbed(nn.Module):
     super().__init__()
     
     self.img_transform = transforms.Compose([
+      transforms.Resize((512,512)),
       transforms.v2.RGB(),
       transforms.PILToTensor(),
       transforms.ConvertImageDtype(torch.float32)

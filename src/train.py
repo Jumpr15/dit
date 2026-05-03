@@ -21,8 +21,8 @@ def main():
      out_channels = 4
      in_dims = 4
      
-     h_patch = 16
-     w_patch = 16
+     latent_h = 64
+     latent_w = 64
 
      lr = 1e-4
      iterations = 1000
@@ -30,12 +30,12 @@ def main():
      
      
      ds = load_dataset(
-          "alfredplpl/artbench-pd-256x256",
+          "none-yet/anime-captions",
           split="train"
      )
 
-     digits_ds = ImgDataset(ds) #. hw patches hardcoded
-     train_dataloader = DataLoader(digits_ds, batch_size=batch_size, shuffle=True, num_workers=20) 
+     img_ds = ImgDataset(ds) #. hw patches hardcoded
+     train_dataloader = DataLoader(img_ds, batch_size=batch_size, shuffle=True, num_workers=20) 
      
      model = DIT(
           batch_size,
@@ -48,8 +48,8 @@ def main():
           block_num,
           lr,
           iterations,
-          h_patch,
-          w_patch,
+          latent_h,
+          latent_w,
           "REPA-E/e2e-sdvae-hf",
           0.18215
      )

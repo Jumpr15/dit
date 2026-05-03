@@ -32,8 +32,8 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         block_num,
         lr,
         iterations,
-        h_patch,
-        w_patch,
+        latent_h,
+        latent_w,
         vae,
         vae_scale_factor
     ):
@@ -48,14 +48,14 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.lr = lr
         self.iterations = iterations
         
-        self.h_patch = h_patch
-        self.w_patch = w_patch
+        self.h_patch = latent_h // patch_size
+        self.w_patch = latent_w // patch_size
         
         self.up_proj = nn.Linear(in_dims * patch_size**2, embed_dims) # input to block dimension expansion
         
         pos_embed = get_2d_sincos_pos_embed(
             embed_dim=embed_dims,
-            grid_size=(h_patch, w_patch), ### hard coded for patch size 
+            grid_size=(self.h_patch, self.w_patch), ### hard coded for patch size 
             output_type="pt"
         )
         self.register_buffer("pos_embed", pos_embed.float()) # f64 => f32
