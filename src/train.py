@@ -11,10 +11,10 @@ from src.data_module.dataset import ImgDataset
 from src.nets.DiT import DIT
 
 def main():
-     batch_size = 64
-     embed_dims = 512
+     batch_size = 128
+     embed_dims = 384
      head_size = 64
-     num_heads = 8
+     num_heads = 6
      block_num = 16
      
      patch_size = 2
@@ -25,8 +25,10 @@ def main():
      latent_w = 64
 
      lr = 1e-4
-     iterations = 1000
+     iterations = 10000
      acc_grad = 1
+     
+     log_steps = 50
      
      
      ds = load_dataset(
@@ -35,7 +37,13 @@ def main():
      )
 
      img_ds = ImgDataset(ds) #. hw patches hardcoded
-     train_dataloader = DataLoader(img_ds, batch_size=batch_size, shuffle=True, num_workers=20) 
+     train_dataloader = DataLoader(
+          img_ds, batch_size=batch_size, 
+          shuffle=True, 
+          num_workers=20,
+          drop_last=True, 
+          pin_memory=True,
+          ) 
      
      model = DIT(
           batch_size,
@@ -70,7 +78,7 @@ def main():
           precision="bf16-mixed",
           gradient_clip_val=1.0,
           accumulate_grad_batches=acc_grad,
-          log_every_n_steps=10,
+          log_every_n_steps=log_steps,
           enable_checkpointing=True,
           devices=1,
           strategy="auto",
