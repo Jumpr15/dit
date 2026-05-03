@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 
 import pytorch_lightning as L
 from pytorch_lightning.loggers import WandbLogger
@@ -10,26 +11,35 @@ from datasets import load_dataset
 from src.data_module.dataset import ImgDataset
 from src.nets.DiT import DIT
 
-def main():
-     batch_size = 128
-     embed_dims = 384
-     head_size = 64
-     num_heads = 6
-     block_num = 16
-     
-     patch_size = 2
-     out_channels = 4
-     in_dims = 4
-     
-     latent_h = 64
-     latent_w = 64
+from src.hf_save import HubCheckpointSync
+from.resume import get_latest_checkpoint
 
-     lr = 1e-4
-     iterations = 10000
-     acc_grad = 1
+batch_size = 128
+embed_dims = 384
+head_size = 64
+num_heads = 6
+block_num = 16
+
+patch_size = 2
+out_channels = 4
+in_dims = 4
+
+latent_h = 64
+latent_w = 64
+
+lr = 1e-4
+iterations = 25000
+acc_grad = 1
+
+log_steps = 50
+run_name = "anime_captions_v1"
+
+HF_TOKEN = os.environ["HF_TOKEN"]   # never hardcode tokens
+HF_REPO  = "Jumpr/anime-dit-checkpoints"
      
-     log_steps = 50
-     
+
+def main():
+     ckpt_path = get_latest_checkpoint(HF_REPO, local_dir="src/model_ckpts")
      
      ds = load_dataset(
           "none-yet/anime-captions",
@@ -67,7 +77,7 @@ def main():
      wandb_logger = WandbLogger(
           log_model=False,
           resume="allow",
-          name="artbench_train",
+          name=run_name,
           id = run_id
     )
 
@@ -84,12 +94,17 @@ def main():
           strategy="auto",
           callbacks=[
                L.callbacks.ModelCheckpoint(
-                    dirpath='.src/model_ckpts', every_n_train_steps=50, save_top_k=-1
-               )
+                    dirpath='.src/model_ckpts', every_n_train_steps=10, save_top_k=-1
+               ),
+               HubCheckpointSync(repo_id=HF_REPO, token=HF_TOKEN)
           ],
      )
      
-     trainer.fit(model, train_dataloaders=train_dataloader) # fails on last batch if batch_size != set batch_size
+     trainer.fit(
+          model, 
+          train_dataloaders=train_dataloader,
+          ckpt_path=ckpt_path
+     ) 
 
 if __name__ == "__main__":
      main()
