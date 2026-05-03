@@ -11,11 +11,11 @@ import PIL.Image as Image
 
 from ema_pytorch import EMA
 
-from src.nets.embeddingLayers.textEmbed import TextEmbed
-from src.nets.embeddingLayers.timestepEmbed import TimestepEmbed
+from nets.embeddingLayers.textEmbed import TextEmbed
+from nets.embeddingLayers.timestepEmbed import TimestepEmbed
 
-from src.nets.finalLayer import FinalLayer
-from src.nets.ditBlock import DiT_Block
+from nets.finalLayer import FinalLayer
+from nets.ditBlock import DiT_Block
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

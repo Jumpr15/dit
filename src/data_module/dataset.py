@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 
-from src.nets.embeddingLayers.imageEmbed import ImageEmbed
+from nets.embeddingLayers.imageEmbed import ImageEmbed
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

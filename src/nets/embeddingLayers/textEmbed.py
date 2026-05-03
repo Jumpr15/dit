@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from transformers import T5EncoderModel, AutoTokenizer
 
-from src.nets.embeddingLayers.embeddingProjector import EmbeddingProjector
+from nets.embeddingLayers.embeddingProjector import EmbeddingProjector
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
