@@ -525,7 +525,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "accelerate", specifier = ">=0.20.0" },
-    { name = "bitsandbytes", specifier = ">=0.49.2" },
+    { name = "bitsandbytes", specifier = ">=0.43.2" },
     { name = "datasets", specifier = ">=4.8.5" },
     { name = "diffusers", specifier = ">=0.37.1" },
     { name = "ema-pytorch", specifier = ">=0.7.9" },

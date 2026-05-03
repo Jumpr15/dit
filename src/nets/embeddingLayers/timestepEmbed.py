@@ -24,6 +24,20 @@ class TimestepEmbed(nn.Module):
       time_embed_dim=out_dim*2
     )
 
+    self.initialize_weights()
+
+  def initialize_weights(self):
+    # timesteps are linear 1 + b1 => linear 2 + b2
+    nn.init.normal_(self.time_embed_dit_block.linear_1.weight, std=0.02)
+    nn.init.constant_(self.time_embed_dit_block.linear_1.bias, 0)
+    nn.init.normal_(self.time_embed_dit_block.linear_2.weight, std=0.02)
+    nn.init.constant_(self.time_embed_dit_block.linear_2.bias, 0)
+
+    nn.init.normal_(self.time_embed_final.linear_1.weight, std=0.02)
+    nn.init.constant_(self.time_embed_final.linear_1.bias, 0)
+    nn.init.normal_(self.time_embed_final.linear_2.weight, std=0.02)
+    nn.init.constant_(self.time_embed_final.linear_2.bias, 0)
+
   def forward(self, t):
     proj_t = self.time_proj(t)
     t_block_out = self.time_embed_dit_block(proj_t)

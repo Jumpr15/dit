@@ -11,11 +11,11 @@ import PIL.Image as Image
 
 from ema_pytorch import EMA
 
-from nets.embeddingLayers.textEmbed import TextEmbed
-from nets.embeddingLayers.timestepEmbed import TimestepEmbed
+from src.nets.embeddingLayers.textEmbed import TextEmbed
+from src.nets.embeddingLayers.timestepEmbed import TimestepEmbed
 
-from nets.finalLayer import FinalLayer
-from nets.ditBlock import DiT_Block
+from src.nets.finalLayer import FinalLayer
+from src.nets.ditBlock import DiT_Block
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -33,7 +33,9 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         lr,
         iterations,
         h_patch,
-        w_patch
+        w_patch,
+        vae,
+        vae_scale_factor
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -68,9 +70,11 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
             nn.Flatten(2)
         )
         
-        self.vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix")
+        self.vae = AutoencoderKL.from_pretrained(vae)
         self.vae.requires_grad_(False)
         self.vae.eval()
+
+        self.vae_scale_factor = vae_scale_factor
 
         self.block_list = nn.ModuleList(
             [DiT_Block(embed_dims, head_size, num_heads) for _ in range(block_num)]
@@ -81,17 +85,17 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
         self.scheduler = diffusers.schedulers.DDPMScheduler()
         
-        self.ema_model = EMA(
+        object.__setattr__(self, 'ema_model', EMA(
             self,
             beta=0.9999,
             update_after_step=100,
             update_every=10,
             inv_gamma=1.0,
             power=2/3,
-            update_model_with_ema_every=None,
-            update_model_with_ema_beta=0.0,
-        )
+        )) # prevents lightning module recursion
         self.register_buffer("ema_step", torch.tensor(0))
+
+        self.initialize_weights()
 
     def configure_optimizers(self):
         params = [p for p in self.parameters() if p.requires_grad]
@@ -110,10 +114,49 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
             "optimizer": optimizer,
             "lr_scheduler": {"scheduler": scheduler, "interval": "step"},
         }
+
+    def on_fit_start(self):
+        self.ema_model.to(device) # move ema to gpu
         
     def on_after_backward(self):
         self.ema_model.update()
         self.ema_step += 1
+
+    def initialize_weights(self):
+        # basic xavier weight inits for linear layers
+        def _basic_init(module):
+            if isinstance(module, nn.Linear):
+                nn.init.xavier_uniform_(module.weight)
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
+        self.apply(_basic_init)
+
+        # patchify conv2d layer
+        w = self.patchify[0].weight.data
+        nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
+        nn.init.constant_(self.patchify[0].bias, 0)
+
+        # text embedder, target idx 0 and 2 (linear layers)
+        nn.init.normal_(self.text_embedder.embed_proj.mlp[0].weight, std=0.02)
+        nn.init.normal_(self.text_embedder.embed_proj.mlp[2].weight, std=0.02)
+
+        for block in self.block_list:
+            # dit block list adaln table
+            nn.init.zeros_(block.adaLN_scale_table.data[2])
+            nn.init.zeros_(block.adaLN_scale_table.data[5])
+
+            # dit block cross attn text condition zeroing
+            nn.init.constant_(block.cross_mha.o_proj.weight, 0)
+            nn.init.constant_(block.cross_mha.o_proj.bias, 0)
+            
+
+        # final layer proj 
+        nn.init.constant_(self.final_layer.proj_out.weight, 0)
+        nn.init.constant_(self.final_layer.proj_out.bias, 0)
+        
+        # final layer adaln table
+        nn.init.zeros_(self.final_layer.adaLN_scale_table.data)
+                
 
     def unpatchify(self, x):
         b = x.shape[0]
@@ -145,10 +188,10 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         
         with torch.no_grad():
             l_img = self.vae.encode(img.to(device))
-            l_sample = l_img.latent_dist.sample() * 0.18215
+            l_sample = l_img.latent_dist.sample() * self.vae_scale_factor
             
         noise = torch.randn_like(l_sample)
-        steps = torch.randint(self.scheduler.config.num_train_timesteps, (self.batch_size, )).to(device)
+        steps = torch.randint(self.scheduler.config.num_train_timesteps, (l_sample.shape[0], )).to(device)
         noised_latents = self.scheduler.add_noise(l_sample, noise, steps)
         patched_latent = self.patchify(noised_latents).transpose(1, 2)
         
@@ -171,7 +214,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
                 patched_latent = self.patchify(latent_img).transpose(1, 2)
                 
                 if use_ema_weights is True:
-                    noise_pred = self.ema_model(patched_latent, text, timestep) # using ema weights
+                    noise_pred = self.ema_model.ema_model(patched_latent, text, timestep) # using ema weights
                 else:  
                     noise_pred = self(patched_latent, text, timestep) # predicted noise
 
@@ -185,7 +228,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
                 # Move result back to GPU for next iteration
                 latent_img = latent_img_cpu.to(device)
                 
-            latent_img = latent_img / 0.18215 # scaling factor matching training
+            latent_img = latent_img / self.vae_scale_factor # scaling factor matching training
             img = self.vae.decode(latent_img).sample
         
         t_img = ((img * 0.5) + 0.5).clamp(0, 1) # [-1, 1] => [0, 1] (clamp values out of range)

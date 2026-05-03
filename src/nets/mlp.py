@@ -7,7 +7,6 @@ class MLP(nn.Module):
         nn.Linear(embed_dims, embed_dims*exp_factor),
         nn.SiLU(),
         nn.Linear(embed_dims*exp_factor, embed_dims),
-        nn.LayerNorm(embed_dims)
     )
 
   def forward(self, x):

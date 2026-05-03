@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
 
-from nets.attentionLayers.selfAttentionHead import Self_Attention_Head
-from nets.attentionLayers.crossAttentionHead import Cross_Attention_Head
-from nets.mlp import MLP
+from src.nets.attentionLayers.selfAttentionHead import Self_Attention_Head
+from src.nets.attentionLayers.crossAttentionHead import Cross_Attention_Head
+from src.nets.mlp import MLP
 
 class DiT_Block(nn.Module):
   def __init__(self, embed_dims, head_size, num_heads):

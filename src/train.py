@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytorch_lightning as L
 from pytorch_lightning.loggers import WandbLogger
 
@@ -5,8 +7,8 @@ from torch.utils.data import DataLoader
 
 from datasets import load_dataset
 
-from data_module.dataset import ImgDataset
-from nets.DiT import DIT
+from src.data_module.dataset import ImgDataset
+from src.nets.DiT import DIT
 
 def main():
      batch_size = 64
@@ -47,13 +49,18 @@ def main():
           lr,
           iterations,
           h_patch,
-          w_patch
+          w_patch,
+          "REPA-E/e2e-sdvae-hf",
+          0.18215
      )
+
+     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
      
      wandb_logger = WandbLogger(
           log_model=False,
           resume="allow",
-          id="artbench_train"
+          name="artbench_train",
+          id = run_id
     )
 
      trainer = L.Trainer(
