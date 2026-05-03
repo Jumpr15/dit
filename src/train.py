@@ -8,11 +8,11 @@ from torch.utils.data import DataLoader
 
 from datasets import load_dataset
 
-from src.data_module.dataset import ImgDataset
-from src.nets.DiT import DIT
+from data_module.dataset import ImgDataset
+from nets.DiT import DIT
 
-from src.hf_save import HubCheckpointSync
-from src.resume import get_latest_checkpoint
+from hf_save import HubCheckpointSync
+from resume import get_latest_checkpoint
 
 batch_size = 128
 embed_dims = 384
