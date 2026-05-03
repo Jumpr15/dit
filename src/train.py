@@ -12,7 +12,7 @@ from src.data_module.dataset import ImgDataset
 from src.nets.DiT import DIT
 
 from src.hf_save import HubCheckpointSync
-from.resume import get_latest_checkpoint
+from src.resume import get_latest_checkpoint
 
 batch_size = 128
 embed_dims = 384
@@ -33,7 +33,7 @@ acc_grad = 1
 
 log_steps = 50
 checkpoint_steps = 100
-run_name = "anime_captions_v1"
+run_name = "anime_captions_train_v1"
 
 HF_TOKEN = os.environ["HF_TOKEN"]   # never hardcode tokens
 HF_REPO  = "Jumpr/anime-dit-checkpoints"
