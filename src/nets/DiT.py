@@ -207,7 +207,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.scheduler.set_timesteps(num_steps)
         
         with torch.no_grad():
-            latent_img = torch.randn(1, 4, 32, 32).to(device) # B, C, L_H, L_W ## changes by image dimensions
+            latent_img = torch.randn(1, 4, 64, 64).to(device) # B, C, L_H, L_W ## changes by image dimensions
             
             for timestep in self.scheduler.timesteps: # 0-num_steps
                 timestep = timestep.unsqueeze(0).to(device)
