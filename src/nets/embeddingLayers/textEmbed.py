@@ -2,12 +2,10 @@ import torch
 import torch.nn as nn
 from transformers import T5EncoderModel, AutoTokenizer
 
-from nets.embeddingLayers.embeddingProjector import EmbeddingProjector
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class TextEmbed(nn.Module):
-  def __init__(self, out_dim):
+  def __init__(self, out_dim, exp_factor=4):
     super().__init__()
     model_name = "google-t5/t5-small"
 
@@ -19,8 +17,14 @@ class TextEmbed(nn.Module):
     self.T5.eval()
 
     self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
+    model_out_dim = 512 # output dimension of T5
 
-    self.embed_proj = EmbeddingProjector(512, out_dim) # hardcoded, 512 is T5 output dim
+    self.embed_proj = nn.Sequential(
+        nn.Linear(model_out_dim, model_out_dim*exp_factor),
+        nn.SiLU(),
+        nn.Linear(model_out_dim*exp_factor, out_dim)
+    )
 
   def forward(self, input_text):
     inputs = self.tokenizer(input_text, padding=True, truncation=True, return_tensors='pt').to(device) # Added return_tensors='pt'
