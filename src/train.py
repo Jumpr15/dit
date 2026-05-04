@@ -11,7 +11,6 @@ from datasets import load_dataset
 from data_module.dataset import ImgDataset
 from nets.DiT import DIT
 
-from hf_save import HubCheckpointSync
 from resume import get_latest_checkpoint
 
 batch_size = 8
