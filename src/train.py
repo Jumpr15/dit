@@ -14,18 +14,18 @@ from nets.DiT import DIT
 from hf_save import HubCheckpointSync
 from resume import get_latest_checkpoint
 
-batch_size = 16
-embed_dims = 384
+batch_size = 8
+embed_dims = 768
 head_size = 64
-num_heads = 6
+num_heads = 12
 block_num = 16
 
 patch_size = 2
 out_channels = 4
 in_dims = 4
 
-latent_h = 64
-latent_w = 64
+latent_h = 32
+latent_w = 32
 
 lr = 1e-4
 iterations = 50000
@@ -33,17 +33,16 @@ acc_grad = 1
 
 log_steps = 50
 checkpoint_steps = 1000
-run_name = "anime_captions_train_v1"
+run_name = "anime_faces"
 
-HF_TOKEN = os.environ["HF_TOKEN"]   # never hardcode tokens
-HF_REPO  = "Jumpr/anime-dit-checkpoints"
+HF_REPO  = "Jumpr/anime-face-checkpoints"
      
 
 def main():
      ckpt_path = get_latest_checkpoint(HF_REPO, local_dir="src/model_ckpts")
      
      ds = load_dataset(
-          "none-yet/anime-captions",
+          "minoruskore/anime-faces-256",
           split="train"
      )
 
@@ -97,7 +96,6 @@ def main():
                L.callbacks.ModelCheckpoint(
                     dirpath='.src/model_ckpts', every_n_train_steps=checkpoint_steps, save_top_k=-1
                ),
-               # HubCheckpointSync(repo_id=HF_REPO, token=HF_TOKEN)
           ],
      )
      
