@@ -1,5 +1,12 @@
-run_name: "anime_faces"
-hf_repo: "Jumpr/anime-face-checkpoints"
+run_name: anime_faces
+hf_repo: Jumpr/anime-face-checkpoints
+
+dataset: minoruskore/anime-faces-256
+pixel_h: 256
+pixel_w: 256
+
+vae: REPA-E/e2e-sdvae-hf
+vae_scale_factor: 0.18215
 
 batch_size: 24
 iterations: 50000

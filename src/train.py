@@ -25,7 +25,12 @@ def main():
           run_name = config['run_name']
           hf_repo = config['hf_repo']
           
+          dataset = config['dataset']
+          pixel_h = config['pixel_h']
+          pixel_w = config['pixel_w']
           
+          vae = config['vae']
+          vae_scale_factor = config['vae_scale_factor']
           
           batch_size = config['batch_size']
           iterations = config['iterations']
@@ -47,7 +52,7 @@ def main():
      ckpt_path = get_latest_checkpoint(hf_repo, local_dir="src/model_ckpts")
      
      ds = load_dataset(
-          "minoruskore/anime-faces-256",
+          dataset,
           split="train"
      )
 
@@ -73,8 +78,8 @@ def main():
           iterations,
           latent_h,
           latent_w,
-          "REPA-E/e2e-sdvae-hf",
-          0.18215
+          vae,
+          vae_scale_factor
      )
 
      run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
