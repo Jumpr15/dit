@@ -13,7 +13,7 @@ from nets.DiT import DIT
 
 from resume import get_latest_checkpoint
 
-batch_size = 8
+batch_size = 24
 embed_dims = 768
 head_size = 64
 num_heads = 12
@@ -82,8 +82,8 @@ def main():
 
      trainer = L.Trainer(
           logger=wandb_logger,
-          max_epochs=1,
-          limit_train_batches=iterations,
+          max_epochs=-1,
+          max_steps=iterations,
           precision="bf16-mixed",
           gradient_clip_val=1.0,
           accumulate_grad_batches=acc_grad,
@@ -93,7 +93,7 @@ def main():
           strategy="auto",
           callbacks=[
                L.callbacks.ModelCheckpoint(
-                    dirpath='src/model_ckpts', every_n_train_steps=checkpoint_steps, save_top_k=-1
+                    dirpath='src/model_ckpts', every_n_train_steps=checkpoint_steps, save_top_k=3
                ),
           ],
      )
