@@ -1,5 +1,4 @@
 from datetime import datetime
-import os
 
 import pytorch_lightning as L
 from pytorch_lightning.loggers import WandbLogger
@@ -8,37 +7,44 @@ from torch.utils.data import DataLoader
 
 from datasets import load_dataset
 
+import yaml
+
 from data_module.dataset import ImgDataset
 from nets.DiT import DIT
 
 from resume import get_latest_checkpoint
 
-batch_size = 24
-embed_dims = 768
-head_size = 64
-num_heads = 12
-block_num = 16
-
-patch_size = 2
-out_channels = 4
-in_dims = 4
-
 latent_h = 32
 latent_w = 32
-
-lr = 1e-4
-iterations = 50000
-acc_grad = 1
-
-log_steps = 50
-checkpoint_steps = 1000
-run_name = "anime_faces"
-
-HF_REPO  = "Jumpr/anime-face-checkpoints"
      
 
 def main():
-     ckpt_path = get_latest_checkpoint(HF_REPO, local_dir="src/model_ckpts")
+     with open('config.yaml', 'r') as f:
+          config = yaml.safe_load(f)
+          
+          run_name = config['run_name']
+          hf_repo = config['hf_repo']
+          
+          
+          
+          batch_size = config['batch_size']
+          iterations = config['iterations']
+          log_steps = config['log_steps']
+          checkpoint_steps = config['checkpoint_steps']
+          
+          embed_dims = config['embed_dims']
+          head_size = config['head_size']
+          num_heads = embed_dims // head_size
+          block_num = config['block_num']
+          
+          patch_size = config['patch_size']
+          in_dims = config['in_dims'] # no. latent space input dimensions
+          out_channels = config['out_channels'] # no. latent space output dimensions
+          
+          acc_grad = config['acc_grad']
+          lr = config['lr']
+     
+     ckpt_path = get_latest_checkpoint(hf_repo, local_dir="src/model_ckpts")
      
      ds = load_dataset(
           "minoruskore/anime-faces-256",

@@ -1,0 +1,18 @@
+run_name: "anime_faces"
+hf_repo: "Jumpr/anime-face-checkpoints"
+
+batch_size: 24
+iterations: 50000
+log_steps: 50
+checkpoint_steps: 1000
+
+embed_dims: 768
+head_size: 64
+block_num: 16
+
+patch_size: 2
+out_channels: 4
+in_dims: 4
+
+lr = 1e-4
+acc_grad = 1

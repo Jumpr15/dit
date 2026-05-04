@@ -1,5 +1,5 @@
 import os
-from huggingface_hub import hf_hub_download, list_repo_files
+from huggingface_hub import hf_hub_download
 from huggingface_hub import HfApi
 
 def get_latest_checkpoint(repo_id: str, local_dir: str = "src/model_ckpts") -> str | None:
