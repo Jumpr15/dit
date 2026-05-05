@@ -25,6 +25,8 @@ def main():
           run_name = config['run_name']
           hf_repo = config['hf_repo']
           
+          ckpt_dir = config['ckpt_dir']
+          
           dataset = config['dataset']
           pixel_h = config['pixel_h']
           pixel_w = config['pixel_w']
@@ -49,7 +51,7 @@ def main():
           acc_grad = config['acc_grad']
           lr = config['lr']
      
-     ckpt_path = get_latest_checkpoint(hf_repo, local_dir="src/model_ckpts")
+     ckpt_path = get_latest_checkpoint(hf_repo, local_dir=ckpt_dir)
      
      ds = load_dataset(
           dataset,
@@ -104,7 +106,7 @@ def main():
           strategy="auto",
           callbacks=[
                L.callbacks.ModelCheckpoint(
-                    dirpath='src/model_ckpts', every_n_train_steps=checkpoint_steps, save_top_k=3
+                    dirpath=ckpt_dir, every_n_train_steps=checkpoint_steps, save_top_k=3
                ),
           ],
      )

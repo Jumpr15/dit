@@ -1,6 +1,8 @@
 run_name: anime_faces
 hf_repo: Jumpr/anime-face-checkpoints
 
+ckpt_dir: model_ckpts
+
 dataset: minoruskore/anime-faces-256
 pixel_h: 256
 pixel_w: 256
