@@ -14,10 +14,6 @@ from nets.DiT import DIT
 
 from resume import get_latest_checkpoint
 
-latent_h = 32
-latent_w = 32
-     
-
 def main():
      with open('config.yaml', 'r') as f:
           config = yaml.safe_load(f)
@@ -34,7 +30,11 @@ def main():
           pixel_w = config['pixel_w']
           
           vae = config['vae']
+          vae_downsample_factor = config['vae_downsample_factor']
           vae_scale_factor = config['vae_scale_factor']
+          
+          latent_h = pixel_h // vae_downsample_factor
+          latent_w = pixel_w // vae_downsample_factor
           
           batch_size = config['batch_size']
           iterations = config['iterations']
