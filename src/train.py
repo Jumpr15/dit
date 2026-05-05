@@ -111,7 +111,7 @@ def main():
           strategy="auto",
           callbacks=[
                L.callbacks.ModelCheckpoint(
-                    dirpath=ckpt_dir, every_n_train_steps=checkpoint_steps, save_top_k=3
+                    dirpath=ckpt_dir, every_n_train_steps=checkpoint_steps, save_top_k=-1
                ),
           ],
      )

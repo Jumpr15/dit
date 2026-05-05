@@ -138,8 +138,8 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         nn.init.constant_(self.patchify[0].bias, 0)
 
         # text embedder, target idx 0 and 2 (linear layers)
-        nn.init.normal_(self.text_embedder.embed_proj.mlp[0].weight, std=0.02)
-        nn.init.normal_(self.text_embedder.embed_proj.mlp[2].weight, std=0.02)
+        nn.init.normal_(self.text_embedder.embed_proj[0].weight, std=0.02)
+        nn.init.normal_(self.text_embedder.embed_proj[2].weight, std=0.02)
 
         for block in self.block_list:
             # dit block list adaln table
