@@ -2,15 +2,15 @@ import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
 
-from nets.attentionLayers.selfAttentionHead import Self_Attention_Head
-from nets.attentionLayers.crossAttentionHead import Cross_Attention_Head
+from nets.attentionLayers.multiHeadAttention import Multi_Head_Attention
+
 from nets.mlp import MLP
 
 class DiT_Block(nn.Module):
   def __init__(self, embed_dims, head_size, num_heads):
     super().__init__()
-    self.self_mha = Self_Attention_Head(embed_dims, head_size, num_heads)
-    self.cross_mha = Cross_Attention_Head(embed_dims, head_size, num_heads)
+    self.self_mha = Multi_Head_Attention(embed_dims, head_size, num_heads)
+    self.cross_mha = Multi_Head_Attention(embed_dims, head_size, num_heads)
     self.mlp = MLP(embed_dims)
     self.adaLN_scale_table = nn.Parameter(torch.randn(6, embed_dims) / embed_dims ** 0.5)
     self.ln1 = nn.LayerNorm(
@@ -43,7 +43,7 @@ class DiT_Block(nn.Module):
     )
 
     c_attn_out = s_attn_out + self.drop_path(
-        self.cross_mha(s_attn_out, y)
+        self.cross_mha(s_attn_out, y, y)
     )
 
     mlp_out = c_attn_out + self.drop_path(
