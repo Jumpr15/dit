@@ -34,16 +34,17 @@ class DiT_Block(nn.Module):
     B = x.shape[0]
     msa_scale, msa_shift, msa_gate, mlp_scale, mlp_shift, mlp_gate = (self.adaLN_scale_table[None] + t.reshape(B, 6, -1)).chunk(6, dim=1)
 
-    s_attn_out = x + self.drop_path(
-        msa_gate * self.self_mha(
-            self.adaLN_modulate(
+    mod_x = self.adaLN_modulate(
                 self.ln1(x),
                 msa_scale,
                 msa_shift
             )
+    s_attn_out = x + self.drop_path(
+        msa_gate * self.self_mha(
+            self.adaLN_modulate(mod_x, mod_x, mod_x)
         )
     )
-
+    
     c_attn_out = s_attn_out + self.drop_path(
         self.cross_mha(s_attn_out, y, y)
     )
