@@ -104,7 +104,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         optimizer = optim.AdamW(params, lr=self.lr)
         scheduler = optim.lr_scheduler.OneCycleLR(
             optimizer,
-            self.lr,
+            float(self.lr),
             total_steps=self.iterations,
             pct_start=0.1,
             anneal_strategy="cos",
