@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from timm.models.layers import DropPath
 
-from multiHeadAttention import Multi_Head_Attention
+from nets.multiHeadAttention import Multi_Head_Attention
 
 class DiT_Block(nn.Module):
   def __init__(self, embed_dims, head_size, num_heads, exp_factor=4):
