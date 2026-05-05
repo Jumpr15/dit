@@ -1,6 +1,6 @@
 run_name: anime_faces
 run_id: v2
-hf_repo: Jumpr/anime-face-checkpoints
+hf_repo: Jumpr/anime-face-epoch-10-step-21000
 
 ckpt_dir: model_ckpts
 

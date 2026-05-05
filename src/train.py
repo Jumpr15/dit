@@ -14,7 +14,6 @@ import yaml
 from data_module.dataset import ImgDataset
 from nets.DiT import DIT
 
-from resume import get_latest_checkpoint
 
 def main():
      with open('config.yaml', 'r') as f:
@@ -57,14 +56,6 @@ def main():
           acc_grad = config['acc_grad']
           lr = config['lr']
      
-     # ckpt_path = get_latest_checkpoint(hf_repo, local_dir=ckpt_dir)
-     ckpt_path = hf_hub_download(
-          repo_id=hf_repo,
-          filename="model.safetensors",
-          repo_type="model",
-          local_dir=ckpt_dir
-     )
-     
      ds = load_dataset(
           dataset,
           split="train"
@@ -79,7 +70,8 @@ def main():
           pin_memory=True,
           ) 
      
-     model = DIT(
+     model = DIT.from_pretrained(
+	     hf_repo,
           batch_size,
           patch_size,
           out_channels,
