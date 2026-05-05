@@ -41,7 +41,7 @@ class DiT_Block(nn.Module):
             )
     s_attn_out = x + self.drop_path(
         msa_gate * self.self_mha(
-            self.adaLN_modulate(mod_x, mod_x, mod_x)
+            mod_x, mod_x, mod_x
         )
     )
     
