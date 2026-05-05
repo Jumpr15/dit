@@ -1,5 +1,5 @@
 run_name: anime_faces
-run_id: 1
+run_id: v1
 hf_repo: Jumpr/anime-face-checkpoints
 
 ckpt_dir: model_ckpts
