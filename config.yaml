@@ -28,5 +28,5 @@ patch_size: 2
 out_channels: 4
 in_dims: 4
 
-lr = 1e-4
-acc_grad = 1
+lr: 1e-4
+acc_grad: 1
