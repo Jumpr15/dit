@@ -23,11 +23,13 @@ def main():
           config = yaml.safe_load(f)
           
           run_name = config['run_name']
+          run_id = config['run_id']
           hf_repo = config['hf_repo']
           
           ckpt_dir = config['ckpt_dir']
           
           dataset = config['dataset']
+          num_workers = config['num_workers']
           pixel_h = config['pixel_h']
           pixel_w = config['pixel_w']
           
@@ -38,6 +40,8 @@ def main():
           iterations = config['iterations']
           log_steps = config['log_steps']
           checkpoint_steps = config['checkpoint_steps']
+          
+          num_devices = config['num_devices']
           
           embed_dims = config['embed_dims']
           head_size = config['head_size']
@@ -62,7 +66,7 @@ def main():
      train_dataloader = DataLoader(
           img_ds, batch_size=batch_size, 
           shuffle=True, 
-          num_workers=20,
+          num_workers=num_workers,
           drop_last=True, 
           pin_memory=True,
           ) 
@@ -84,7 +88,8 @@ def main():
           vae_scale_factor
      )
 
-     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+     if run_id is None:
+          run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
      
      wandb_logger = WandbLogger(
           log_model=False,
@@ -102,7 +107,7 @@ def main():
           accumulate_grad_batches=acc_grad,
           log_every_n_steps=log_steps,
           enable_checkpointing=True,
-          devices=1,
+          devices=num_devices,
           strategy="auto",
           callbacks=[
                L.callbacks.ModelCheckpoint(

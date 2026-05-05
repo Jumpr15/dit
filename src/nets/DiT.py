@@ -35,7 +35,8 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         latent_h,
         latent_w,
         vae,
-        vae_scale_factor
+        vae_scale_factor,
+        t_channels=256
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -55,7 +56,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         
         pos_embed = get_2d_sincos_pos_embed(
             embed_dim=embed_dims,
-            grid_size=(self.h_patch, self.w_patch), ### hard coded for patch size 
+            grid_size=(self.h_patch, self.w_patch),
             output_type="pt"
         )
         self.register_buffer("pos_embed", pos_embed.float()) # f64 => f32
@@ -80,7 +81,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
             [DiT_Block(embed_dims, head_size, num_heads) for _ in range(block_num)]
         )
         self.text_embedder = TextEmbed(embed_dims)
-        self.timestep_embedder = TimestepEmbed(embed_dims)
+        self.timestep_embedder = TimestepEmbed(embed_dims, t_channels=t_channels)
         self.final_layer = FinalLayer(embed_dims, patch_size, out_channels)
 
         self.scheduler = diffusers.schedulers.DDPMScheduler()
