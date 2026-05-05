@@ -41,13 +41,17 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         super().__init__()
         self.save_hyperparameters()
         
-        self.batch_size = batch_size
-        self.patch_size = patch_size
-        self.out_channels = out_channels
-        self.in_dims = in_dims
-        self.embed_dims = embed_dims
-        self.lr = lr
-        self.iterations = iterations
+        self.lr = float(lr)
+        self.iterations = int(iterations)
+        self.batch_size = int(batch_size)
+        self.patch_size = int(patch_size)
+        self.out_channels = int(out_channels)
+        self.in_dims = int(in_dims)
+        self.embed_dims = int(embed_dims)
+        self.head_size = int(head_size)
+        self.num_heads = int(num_heads)
+        self.block_num = int(block_num)
+        self.vae_scale_factor = float(vae_scale_factor)
         
         self.h_patch = latent_h // patch_size
         self.w_patch = latent_w // patch_size
@@ -74,8 +78,6 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.vae = AutoencoderKL.from_pretrained(vae)
         self.vae.requires_grad_(False)
         self.vae.eval()
-
-        self.vae_scale_factor = vae_scale_factor
 
         self.block_list = nn.ModuleList(
             [DiT_Block(embed_dims, head_size, num_heads) for _ in range(block_num)]
@@ -104,7 +106,7 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         optimizer = optim.AdamW(params, lr=self.lr)
         scheduler = optim.lr_scheduler.OneCycleLR(
             optimizer,
-            float(self.lr),
+            self.lr,
             total_steps=self.iterations,
             pct_start=0.1,
             anneal_strategy="cos",
