@@ -14,7 +14,7 @@ vae_downsample_factor: 8
 vae_scale_factor: 0.18215
 
 batch_size: 24
-iterations: 50000
+iterations: 500000
 log_steps: 50
 checkpoint_steps: 1000
 
