@@ -83,7 +83,7 @@ def main():
           lr=lr,
           iterations=iterations,
           latent_h=latent_h,
-          load_dataset=latent_w,
+          latent_w=latent_w,
           vae=vae,
           vae_scale_factor=vae_scale_factor
      )
