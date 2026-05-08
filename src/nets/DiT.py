@@ -195,17 +195,17 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
 
     def training_step(self, batch, batch_idx):
         img, text_label = batch
+        text_embed = self.text_embedder(text_label)
         
         if self.pre_encoded_latents is False:
-            text_embed = self.text_embedder(text_label)
             
             # cfg implementation
             B = text_embed.shape[0]
             drop_mask = torch.rand(B) < self.cfg_dropout # 1d arr from 0-1, True if less than cfg => nulled
-            drop_mask.to(device)
+            drop_mask = drop_mask.to(device)
             
             null_embed = self.null_text_embed.expand(B, text_embed.shape[1], -1)
-            drop_mask_expanded = drop_mask[B, None, None].expand_as(text_embed)
+            drop_mask_expanded = drop_mask[:, None, None].expand_as(text_embed)
             
             text_embed = torch.where(drop_mask_expanded, null_embed, text_embed)
             
