@@ -57,15 +57,15 @@ def main():
           acc_grad = config['acc_grad']
           lr = config['lr']
      
-     # ds = load_dataset(
-     #      dataset,
-     #      split="train"
-     # )
+     ds = load_dataset(
+          dataset,
+          split="train"
+     )
 
-     # img_ds = ImgDataset(ds) #. hw patches hardcoded
+     img_ds = ImgDataset(ds) #. hw patches hardcoded
      
-     path_to_dir = 'src/images'
-     img_ds = ImgDirDataset(path_to_dir)
+     # path_to_dir = 'src/images'
+     # img_ds = ImgDirDataset(path_to_dir)
      
      train_dataloader = DataLoader(
           img_ds, 

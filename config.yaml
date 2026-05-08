@@ -1,5 +1,5 @@
 run_name: anime_faces
-run_id: v3 
+run_id: v4
 hf_repo: Jumpr/anime-dit-checkpoints-v3-epoch-32-step-65000
 
 ckpt_dir: model_ckpts
@@ -13,9 +13,9 @@ vae: REPA-E/e2e-sdvae-hf
 vae_downsample_factor: 8
 vae_scale_factor: 0.18215
 
-batch_size: 24
-iterations: 100000
-log_steps: 50
+batch_size: 96
+iterations: 50000
+log_steps: 10
 checkpoint_steps: 2000
 
 num_devices: 1
