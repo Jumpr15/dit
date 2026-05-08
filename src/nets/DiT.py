@@ -37,7 +37,8 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         vae,
         vae_scale_factor,
         t_channels=256,
-        pre_encoded_latents=False
+        cfg_dropout=0.1,
+        pre_encoded_latents=False,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -60,6 +61,9 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.w_patch = latent_w // patch_size
         
         self.up_proj = nn.Linear(in_dims * patch_size**2, embed_dims) # input to block dimension expansion
+        
+        self.null_text_embed = nn.Parameter(torch.zeros(1, 1, embed_dims))
+        self.cfg_dropout = cfg_dropout
         
         pos_embed = get_2d_sincos_pos_embed(
             embed_dim=embed_dims,
@@ -195,6 +199,16 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         if self.pre_encoded_latents is False:
             text_embed = self.text_embedder(text_label)
             
+            # cfg implementation
+            B = text_embed.shape[0]
+            drop_mask = torch.rand(B) < self.cfg_dropout # 1d arr from 0-1, True if less than cfg => nulled
+            drop_mask.to(device)
+            
+            null_embed = self.null_text_embed.expand(B, text_embed.shape[1], -1)
+            drop_mask_expanded = drop_mask[B, None, None].expand_as(text_embed)
+            
+            text_embed = torch.where(drop_mask_expanded, null_embed, text_embed)
+            
             with torch.no_grad():
                 l_img = self.vae.encode(img.to(device))
                 l_sample = l_img.latent_dist.sample() * self.vae_scale_factor
@@ -209,21 +223,38 @@ class DIT(L.LightningModule, PyTorchModelHubMixin):
         self.log("train_loss", loss)
         return loss
 
-    def inference(self, text, num_steps=50, use_ema_weights=True):
+    def inference(self, text, num_steps=50, guidance_scale=5, use_ema_weights=False):
         self.eval()
         self.scheduler.set_timesteps(num_steps)
         
+        text_embed = self.text_embedder(text)
+        
         with torch.no_grad():
-            latent_img = torch.randn(1, 4, 64, 64).to(device) # B, C, L_H, L_W ## changes by image dimensions
+            latent_img = torch.randn(1, 4, 32, 32).to(device) # B, C, L_H, L_W ## changes by image dimensions
             
             for timestep in self.scheduler.timesteps: # 0-num_steps
                 timestep = timestep.unsqueeze(0).to(device)
                 patched_latent = self.patchify(latent_img).transpose(1, 2)
                 
-                if use_ema_weights is True:
-                    noise_pred = self.ema_model.ema_model(patched_latent, text, timestep) # using ema weights
+                # duplicate for cfg and text conditioned forward passes
+                null_embed = self.null_text_embed.expand(1, text_embed.shape[1], -1)
+                text_embed = torch.cat([null_embed, text_embed], dim=0)
+                patched_latent = patched_latent.repeat(2, 1, 1, 1)
+                timestep = timestep.repeat(2)
+                
+                if use_ema_weights is True: # Not working
+                    pass
+                #     noise_pred = self.ema_model.ema_model(patched_latent, text_embed, timestep) # using ema weights
                 else:  
-                    noise_pred = self(patched_latent, text, timestep) # predicted noise
+                    noise_pred = self(patched_latent, text_embed, timestep) # predicted noise
+                    
+                    # split into conditioned and unconditioned
+                    noise_pred_uncond = noise_pred[0:1]
+                    noise_pred_cond = noise_pred[1:2]
+                    
+                    noise_pred = noise_pred_uncond + guidance_scale * (
+                        noise_pred_cond - noise_pred_uncond
+                    )
 
                 noise_pred_cpu = noise_pred.cpu()
                 latent_img_cpu = latent_img.cpu()
