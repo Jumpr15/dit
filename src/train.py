@@ -27,6 +27,8 @@ def main():
           ckpt_dir = config['ckpt_dir']
           
           dataset = config['dataset']
+          img_label = config['img_label']
+          text_label = config['text_label']
           num_workers = config['num_workers']
           pixel_h = config['pixel_h']
           pixel_w = config['pixel_w']
@@ -62,7 +64,7 @@ def main():
           split="train"
      )
 
-     img_ds = ImgDataset(ds) #. hw patches hardcoded
+     img_ds = ImgDataset(ds, img_label, text_label) 
      
      # path_to_dir = 'src/images'
      # img_ds = ImgDirDataset(path_to_dir)

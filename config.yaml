@@ -5,6 +5,8 @@ hf_repo: Jumpr/anime-dit-checkpoints-v5-epoch-78-step-37000 # repo to of pretrai
 ckpt_dir: model_ckpts
 
 dataset: minoruskore/anime-faces-256
+img_label: image 
+text_label: tags
 num_workers: 8
 pixel_h: 256
 pixel_w: 256
