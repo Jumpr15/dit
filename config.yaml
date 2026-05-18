@@ -1,13 +1,15 @@
-run_name: anime_faces
-run_id: v4
-hf_repo: Jumpr/anime-dit-checkpoints-v5-epoch-78-step-37000 # repo to of pretrained model to train off of
+from_pretrained: null
+
+run_name: ffhq_faces
+run_id: v1
+hf_repo: null # repo to of pretrained model to train off of
 
 ckpt_dir: model_ckpts
 
-dataset: minoruskore/anime-faces-256
+dataset: idning/ffhq256-caption
 img_label: image 
-text_label: tags
-num_workers: 8
+text_label: text
+num_workers: 4
 pixel_h: 256
 pixel_w: 256
 

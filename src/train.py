@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from huggingface_hub import hf_hub_download
-
 import pytorch_lightning as L
 from pytorch_lightning.loggers import WandbLogger
 
@@ -12,13 +10,14 @@ from datasets import load_dataset
 import yaml
 
 from data_module.dataset import ImgDataset
-from dir_dataset import ImgDirDataset
 from nets.DiT import DIT
 
 
 def main():
      with open('config.yaml', 'r') as f:
           config = yaml.safe_load(f)
+          
+          from_pretrained = config['from_pretrained']
           
           run_name = config['run_name']
           run_id = config['run_id']
@@ -66,9 +65,6 @@ def main():
 
      img_ds = ImgDataset(ds, img_label, text_label) 
      
-     # path_to_dir = 'src/images'
-     # img_ds = ImgDirDataset(path_to_dir)
-     
      train_dataloader = DataLoader(
           img_ds, 
           batch_size=batch_size, 
@@ -78,23 +74,42 @@ def main():
           pin_memory=True,
           ) 
      
-     model = DIT.from_pretrained(
-	     hf_repo,
-          batch_size=batch_size,
-          patch_size=patch_size,
-          out_channels=out_channels,
-          in_dims=in_dims,
-          embed_dims=embed_dims,
-          head_size=head_size,
-          num_heads=num_heads,
-          block_num=block_num,
-          lr=lr,
-          iterations=iterations,
-          latent_h=latent_h,
-          latent_w=latent_w,
-          vae=vae,
-          vae_scale_factor=vae_scale_factor
-     )
+     if from_pretrained:
+          model = DIT.from_pretrained(
+               hf_repo,
+               batch_size=batch_size,
+               patch_size=patch_size,
+               out_channels=out_channels,
+               in_dims=in_dims,
+               embed_dims=embed_dims,
+               head_size=head_size,
+               num_heads=num_heads,
+               block_num=block_num,
+               lr=lr,
+               iterations=iterations,
+               latent_h=latent_h,
+               latent_w=latent_w,
+               vae=vae,
+               vae_scale_factor=vae_scale_factor
+          )
+          
+     else:
+          model = DIT.from_pretrained(
+               batch_size,
+               patch_size,
+               out_channels,
+               in_dims,
+               embed_dims,
+               head_size,
+               num_heads,
+               block_num,
+               lr,
+               iterations,
+               latent_h,
+               latent_w,
+               vae,
+               vae_scale_factor
+          )
 
      if run_id is None:
           run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
